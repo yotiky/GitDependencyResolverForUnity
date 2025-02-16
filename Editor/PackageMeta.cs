@@ -53,7 +53,7 @@ namespace Coffee.GitDependencyResolver
         private static readonly Regex s_IsGitReg =
             new Regex(
                 @"^(git\\+)?" +
-                @"(git@|git://|http://|https://|ssh://)",
+                @"(git@|git://|git\+ssh:|http://|https://|ssh://)",
                 k_RegOption);
 
         private static readonly GitLock s_GitLock = new GitLock();
@@ -67,6 +67,7 @@ namespace Coffee.GitDependencyResolver
         public PackageMeta[] gitDependencies { get; private set; }
         public string hash { get; set; }
         public string url { get; set; }
+        public string localPath { get; private set; }
 
         private PackageMeta()
         {
@@ -76,6 +77,7 @@ namespace Coffee.GitDependencyResolver
             path = "";
             hash = "";
             url = "";
+            localPath = "";
             version = new SemVersion(0);
             dependencies = new PackageMeta [0];
             gitDependencies = new PackageMeta [0];
@@ -155,6 +157,7 @@ namespace Coffee.GitDependencyResolver
             if (!isGit)
             {
                 package.SetVersion(url);
+                package.SetLocalPath(url);
                 return package;
             }
 
@@ -186,6 +189,12 @@ namespace Coffee.GitDependencyResolver
             SemVersion v;
             if (SemVersion.TryParse(ver, out v) && version < v)
                 version = v;
+        }
+
+        private void SetLocalPath(string path)
+        {
+            if (path.StartsWith("file:"))
+                localPath = path.Substring(5);
         }
 
         private void ProcessUrlQuery(string urlQuery)

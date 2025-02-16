@@ -37,10 +37,16 @@ namespace Coffee.GitDependencyResolver
 
         private static PackageMeta[] GetInstalledPackages()
         {
+            var currentPrjPackage = PackageMeta.FromPackageJson("./Packages/manifest.json");
+            
+            var localRefPackages = currentPrjPackage.dependencies
+                .Select(x => PackageMeta.FromPackageDir(x.localPath));
+            
             return Directory.GetDirectories("./Library/PackageCache")
                 .Concat(Directory.GetDirectories("./Packages"))
                 .Select(PackageMeta.FromPackageDir) // Convert to PackageMeta
-                .Concat(new[] {PackageMeta.FromPackageJson("./Packages/manifest.json")})
+                .Concat(new[] {currentPrjPackage})
+                .Concat(localRefPackages)
                 .Where(x => x != null) // Skip null
                 .ToArray();
         }
